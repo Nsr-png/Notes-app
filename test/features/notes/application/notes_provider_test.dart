@@ -27,4 +27,37 @@ void main() {
     expect(updatedNotes, hasLength(5));
     expect(updatedNotes.first, note);
   });
+
+  test('updateNote modifie la note sans changer les autres', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final originalNotes = container.read(notesProvider);
+    final originalOtherNotes = originalNotes.skip(1).toList();
+
+    container
+        .read(notesProvider.notifier)
+        .updateNote('note-1', content: 'Contenu modifié');
+    final updatedNotes = container.read(notesProvider);
+
+    expect(identical(updatedNotes, originalNotes), isFalse);
+    expect(updatedNotes.first.content, 'Contenu modifié');
+    expect(updatedNotes.first.title, originalNotes.first.title);
+    expect(updatedNotes.skip(1), originalOtherNotes);
+    expect(
+      originalNotes.first.content,
+      'Quelques idées à explorer pendant mon temps libre.',
+    );
+  });
+
+  test('updateNote ne fait rien si l’identifiant est inconnu', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final originalNotes = container.read(notesProvider);
+
+    container
+        .read(notesProvider.notifier)
+        .updateNote('unknown', title: 'Titre modifié');
+
+    expect(identical(container.read(notesProvider), originalNotes), isTrue);
+  });
 }

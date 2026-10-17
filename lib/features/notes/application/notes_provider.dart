@@ -33,6 +33,19 @@ class NotesNotifier extends Notifier<List<Note>> {
   void addNote(Note note) {
     state = [note, ...state];
   }
+
+  void updateNote(String id, {String? title, String? content}) {
+    final noteIndex = state.indexWhere((note) => note.id == id);
+    if (noteIndex == -1) return;
+
+    final updatedNotes = [...state];
+    updatedNotes[noteIndex] = updatedNotes[noteIndex].copyWith(
+      title: title,
+      content: content,
+      updatedAt: DateTime.now(),
+    );
+    state = updatedNotes;
+  }
 }
 
 final notesProvider = NotifierProvider<NotesNotifier, List<Note>>(

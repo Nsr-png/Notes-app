@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:notes_app/features/notes/presentation/screens/note_edit_screen.dart';
+import 'package:notes_app/features/notes/presentation/screens/note_screen.dart';
 import 'package:notes_app/features/notes/presentation/screens/notes_list_screen.dart';
 
 final appRouter = GoRouter(
@@ -8,6 +9,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/notes/new',
       builder: (context, state) => const NoteEditScreen(),
+    ),
+    GoRoute(
+      path: '/notes/:id',
+      builder: (context, state) =>
+          NoteScreen(noteId: state.pathParameters['id']!),
     ),
   ],
 );

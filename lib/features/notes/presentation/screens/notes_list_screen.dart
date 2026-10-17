@@ -29,6 +29,7 @@ class NotesListScreen extends ConsumerWidget {
                 final note = notes[index];
                 return Card(
                   child: ListTile(
+                    onTap: () => context.push('/notes/${note.id}'),
                     title: Text(
                       note.title,
                       style: const TextStyle(fontWeight: FontWeight.bold),
