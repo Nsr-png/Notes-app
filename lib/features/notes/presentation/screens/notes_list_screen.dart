@@ -1,38 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:notes_app/features/notes/domain/note.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:notes_app/features/notes/application/notes_provider.dart';
 
-final notes = List<Note>.unmodifiable([
-  Note(
-    id: 'note-1',
-    title: 'Idées de projets',
-    content: 'Quelques idées à explorer pendant mon temps libre.',
-    updatedAt: DateTime(2026, 10, 15),
-  ),
-  Note(
-    id: 'note-2',
-    title: 'Liste de courses',
-    content: 'Pain, lait, pommes et café.',
-    updatedAt: DateTime(2026, 10, 14),
-  ),
-  Note(
-    id: 'note-3',
-    title: 'Réunion de lundi',
-    content: 'Préparer le bilan et les sujets à discuter avec l’équipe.',
-    updatedAt: DateTime(2026, 10, 12),
-  ),
-  Note(
-    id: 'note-4',
-    title: 'À lire',
-    content: 'Noter les livres recommandés par mes amis.',
-    updatedAt: DateTime(2026, 10, 10),
-  ),
-]);
-
-class NotesListScreen extends StatelessWidget {
+class NotesListScreen extends ConsumerWidget {
   const NotesListScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notes = ref.watch(notesProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Mes notes')),
       body: notes.isEmpty
