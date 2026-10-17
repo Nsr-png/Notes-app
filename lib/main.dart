@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:notes_app/features/notes/presentation/screens/notes_list_screen.dart';
+import 'package:notes_app/core/router/app_router.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -11,6 +11,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: const NotesListScreen());
+    return MaterialApp.router(routerConfig: appRouter);
   }
 }
