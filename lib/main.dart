@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:notes_app/features/notes/presentation/screens/notes_list_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -10,11 +11,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Mes notes')),
-        body: const SizedBox.shrink(),
-      ),
-    );
+    return MaterialApp(home: const NotesListScreen());
   }
 }
