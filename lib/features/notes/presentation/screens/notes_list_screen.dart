@@ -61,6 +61,7 @@ class NotesListScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         margin: const EdgeInsets.symmetric(horizontal: 16),
+                        persist: false,
                         content: const Text('Note supprimée'),
                         action: SnackBarAction(
                           label: 'Conserver',

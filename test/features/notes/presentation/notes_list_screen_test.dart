@@ -5,15 +5,12 @@ import 'package:notes_app/features/notes/application/notes_provider.dart';
 import 'package:notes_app/features/notes/presentation/screens/notes_list_screen.dart';
 
 void main() {
-  testWidgets('affiche les titres des quatre notes', (tester) async {
+  testWidgets('affiche le titre de la note initiale', (tester) async {
     await tester.pumpWidget(
       const ProviderScope(child: MaterialApp(home: NotesListScreen())),
     );
 
-    expect(find.text('Idées de projets'), findsOneWidget);
-    expect(find.text('Liste de courses'), findsOneWidget);
-    expect(find.text('Réunion de lundi'), findsOneWidget);
-    expect(find.text('À lire'), findsOneWidget);
+    expect(find.text('Votre 1ère Note'), findsOneWidget);
   });
 
   testWidgets('supprime une note et la restaure avec Conserver', (
@@ -34,17 +31,30 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Idées de projets'), findsNothing);
+    expect(find.text('Votre 1ère Note'), findsNothing);
     expect(find.text('Note supprimée'), findsOneWidget);
     expect(find.text('Conserver'), findsOneWidget);
-    expect(container.read(notesProvider), hasLength(3));
+    expect(container.read(notesProvider), isEmpty);
 
     await tester.tap(find.text('Conserver'));
     await tester.pumpAndSettle();
-
-    expect(container.read(notesProvider), hasLength(4));
+    expect(container.read(notesProvider), hasLength(1));
     expect(container.read(notesProvider).first.id, 'note-1');
-    expect(find.text('Idées de projets'), findsOneWidget);
+    expect(find.text('Votre 1ère Note'), findsOneWidget);
+
+    await tester.drag(
+      find.byKey(const ValueKey('note-1')),
+      const Offset(500, 0),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.pump(const Duration(seconds: 2));
+    expect(find.text('Note supprimée'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+    expect(find.text('Note supprimée'), findsNothing);
+    expect(container.read(notesProvider), isEmpty);
   });
 
   testWidgets('un swipe vers la gauche ne supprime pas la note', (
@@ -65,8 +75,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Idées de projets'), findsOneWidget);
-    expect(container.read(notesProvider), hasLength(4));
+    expect(find.text('Votre 1ère Note'), findsOneWidget);
+    expect(container.read(notesProvider), hasLength(1));
     expect(find.text('Note supprimée'), findsNothing);
   });
 }

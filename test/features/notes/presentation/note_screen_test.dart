@@ -16,14 +16,15 @@ void main() {
       ),
     );
 
-    expect(find.widgetWithText(TextField, 'Idées de projets'), findsOneWidget);
-    expect(
-      find.widgetWithText(
-        TextField,
-        'Quelques idées à explorer pendant mon temps libre.',
+    expect(find.widgetWithText(TextField, 'Votre 1ère Note'), findsOneWidget);
+    final contentField = tester.widget<TextField>(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is TextField &&
+            widget.decoration?.hintText == 'Écrire ici...',
       ),
-      findsOneWidget,
     );
+    expect(contentField.controller?.text, isEmpty);
   });
 
   testWidgets('modifier le contenu met à jour le provider', (tester) async {

@@ -4,11 +4,13 @@ import 'package:notes_app/features/notes/application/notes_provider.dart';
 import 'package:notes_app/features/notes/domain/note.dart';
 
 void main() {
-  test('l’état initial contient quatre notes', () {
+  test('l’état initial contient une note Votre 1ère Note', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
 
-    expect(container.read(notesProvider), hasLength(4));
+    final notes = container.read(notesProvider);
+    expect(notes, hasLength(1));
+    expect(notes.single.title, 'Votre 1ère Note');
   });
 
   test('addNote place la nouvelle note au début de la liste', () {
@@ -24,7 +26,7 @@ void main() {
     container.read(notesProvider.notifier).addNote(note);
     final updatedNotes = container.read(notesProvider);
 
-    expect(updatedNotes, hasLength(5));
+    expect(updatedNotes, hasLength(2));
     expect(updatedNotes.first, note);
   });
 
@@ -43,10 +45,7 @@ void main() {
     expect(updatedNotes.first.content, 'Contenu modifié');
     expect(updatedNotes.first.title, originalNotes.first.title);
     expect(updatedNotes.skip(1), originalOtherNotes);
-    expect(
-      originalNotes.first.content,
-      'Quelques idées à explorer pendant mon temps libre.',
-    );
+    expect(originalNotes.first.content, '');
   });
 
   test('updateNote ne fait rien si l’identifiant est inconnu', () {
@@ -66,16 +65,12 @@ void main() {
     addTearDown(container.dispose);
     final originalNotes = container.read(notesProvider);
 
-    final deleted = container.read(notesProvider.notifier).deleteNote('note-2');
+    final deleted = container.read(notesProvider.notifier).deleteNote('note-1');
 
-    expect(deleted?.note, originalNotes[1]);
-    expect(deleted?.index, 1);
-    expect(container.read(notesProvider), [
-      originalNotes[0],
-      originalNotes[2],
-      originalNotes[3],
-    ]);
-    expect(originalNotes, hasLength(4));
+    expect(deleted?.note, originalNotes.single);
+    expect(deleted?.index, 0);
+    expect(container.read(notesProvider), isEmpty);
+    expect(originalNotes, hasLength(1));
   });
 
   test('deleteNote ne change rien si l’identifiant est inconnu', () {
@@ -97,9 +92,10 @@ void main() {
     final originalNotes = container.read(notesProvider);
     final notifier = container.read(notesProvider.notifier);
 
-    final deleted = notifier.deleteNote('note-2')!;
+    final deleted = notifier.deleteNote('note-1')!;
     notifier.restoreNote(deleted.note, deleted.index);
 
-    expect(container.read(notesProvider), originalNotes);
+    expect(container.read(notesProvider), hasLength(1));
+    expect(container.read(notesProvider).single, originalNotes.single);
   });
 }
