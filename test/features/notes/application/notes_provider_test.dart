@@ -60,4 +60,46 @@ void main() {
 
     expect(identical(container.read(notesProvider), originalNotes), isTrue);
   });
+
+  test('deleteNote retire la note et retourne sa position', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final originalNotes = container.read(notesProvider);
+
+    final deleted = container.read(notesProvider.notifier).deleteNote('note-2');
+
+    expect(deleted?.note, originalNotes[1]);
+    expect(deleted?.index, 1);
+    expect(container.read(notesProvider), [
+      originalNotes[0],
+      originalNotes[2],
+      originalNotes[3],
+    ]);
+    expect(originalNotes, hasLength(4));
+  });
+
+  test('deleteNote ne change rien si l’identifiant est inconnu', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final originalNotes = container.read(notesProvider);
+
+    final deleted = container
+        .read(notesProvider.notifier)
+        .deleteNote('unknown');
+
+    expect(deleted, isNull);
+    expect(identical(container.read(notesProvider), originalNotes), isTrue);
+  });
+
+  test('restoreNote réinsère la note à sa position d’origine', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final originalNotes = container.read(notesProvider);
+    final notifier = container.read(notesProvider.notifier);
+
+    final deleted = notifier.deleteNote('note-2')!;
+    notifier.restoreNote(deleted.note, deleted.index);
+
+    expect(container.read(notesProvider), originalNotes);
+  });
 }

@@ -46,6 +46,23 @@ class NotesNotifier extends Notifier<List<Note>> {
     );
     state = updatedNotes;
   }
+
+  ({Note note, int index})? deleteNote(String id) {
+    final index = state.indexWhere((note) => note.id == id);
+    if (index == -1) return null;
+
+    final updatedNotes = [...state];
+    final note = updatedNotes.removeAt(index);
+    state = updatedNotes;
+    return (note: note, index: index);
+  }
+
+  void restoreNote(Note note, int index) {
+    final updatedNotes = [...state];
+    final insertionIndex = index.clamp(0, updatedNotes.length);
+    updatedNotes.insert(insertionIndex, note);
+    state = updatedNotes;
+  }
 }
 
 final notesProvider = NotifierProvider<NotesNotifier, List<Note>>(

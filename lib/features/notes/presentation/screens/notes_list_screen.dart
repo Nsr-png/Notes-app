@@ -31,24 +31,74 @@ class NotesListScreen extends ConsumerWidget {
               itemCount: notes.length,
               itemBuilder: (context, index) {
                 final note = notes[index];
-                return Card(
-                  child: ListTile(
-                    onTap: () => context.push('/notes/${note.id}'),
-                    title: Text(
-                      note.title,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                return Dismissible(
+                  key: ValueKey(note.id),
+                  direction: DismissDirection.startToEnd,
+                  background: Container(
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.only(left: 16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          note.content,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                    child: Icon(
+                      Icons.delete,
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                  ),
+                  onDismissed: (_) {
+                    final deletedNote = ref
+                        .read(notesProvider.notifier)
+                        .deleteNote(note.id);
+                    if (deletedNote == null) return;
+
+                    final messenger = ScaffoldMessenger.of(context);
+                    messenger.hideCurrentSnackBar();
+                    messenger.showSnackBar(
+                      SnackBar(
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        Text('Modifiée le ${_formatDate(note.updatedAt)}'),
-                      ],
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        content: const Text('Note supprimée'),
+                        action: SnackBarAction(
+                          label: 'Conserver',
+                          onPressed: () {
+                            ref
+                                .read(notesProvider.notifier)
+                                .restoreNote(
+                                  deletedNote.note,
+                                  deletedNote.index,
+                                );
+                          },
+                        ),
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                      onTap: () => context.push('/notes/${note.id}'),
+                      title: Text(
+                        note.title,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            note.content,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text('Modifiée le ${_formatDate(note.updatedAt)}'),
+                        ],
+                      ),
                     ),
                   ),
                 );
