@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:notes_app/features/notes/application/notes_provider.dart';
-import 'package:notes_app/features/notes/presentation/screens/note_edit_screen.dart';
+import 'package:notes_app/features/notes/presentation/screens/note_screen.dart';
 import 'package:notes_app/features/notes/presentation/screens/notes_list_screen.dart';
 
 void main() {
@@ -23,7 +23,7 @@ void main() {
     );
     await tester.tap(find.byTooltip('Ajouter une note'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Enregistrer'));
+    await tester.tap(find.text('Créer'));
     await tester.pump();
 
     expect(find.text('Le titre ne peut pas être vide'), findsOneWidget);
@@ -44,8 +44,8 @@ void main() {
     );
     await tester.tap(find.byTooltip('Ajouter une note'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).first, 'Ma nouvelle note');
-    await tester.tap(find.text('Enregistrer'));
+    await tester.enterText(find.byType(TextField).last, 'Ma nouvelle note');
+    await tester.tap(find.text('Créer'));
     await tester.pumpAndSettle();
 
     final notes = container.read(notesProvider);
@@ -57,13 +57,11 @@ void main() {
 GoRouter _createRouter() {
   return GoRouter(
     routes: [
+      GoRoute(path: '/', builder: (context, state) => const NotesListScreen()),
       GoRoute(
-        path: '/',
-        builder: (context, state) => const NotesListScreen(),
-      ),
-      GoRoute(
-        path: '/notes/new',
-        builder: (context, state) => const NoteEditScreen(),
+        path: '/notes/:id',
+        builder: (context, state) =>
+            NoteScreen(noteId: state.pathParameters['id']!),
       ),
     ],
   );
