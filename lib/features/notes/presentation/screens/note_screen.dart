@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:notes_app/features/notes/application/notes_provider.dart';
@@ -13,17 +15,8 @@ class NoteScreen extends ConsumerStatefulWidget {
 }
 
 class _NoteScreenState extends ConsumerState<NoteScreen> {
-  late final Note? _note;
-  late final TextEditingController _titleController;
-  late final TextEditingController _contentController;
-
-  @override
-  void initState() {
-    super.initState();
-    _note = _findNote(ref.read(notesProvider), widget.noteId);
-    _titleController = TextEditingController(text: _note?.title ?? '');
-    _contentController = TextEditingController(text: _note?.content ?? '');
-  }
+  TextEditingController? _titleController;
+  TextEditingController? _contentController;
 
   Note? _findNote(List<Note> notes, String id) {
     for (final note in notes) {
@@ -34,48 +27,68 @@ class _NoteScreenState extends ConsumerState<NoteScreen> {
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _contentController.dispose();
+    _titleController?.dispose();
+    _contentController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_note == null) {
-      return const Scaffold(body: Center(child: Text('Note introuvable')));
-    }
+    return ref
+        .watch(notesProvider)
+        .when(
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (error, stackTrace) =>
+              const Scaffold(body: Center(child: Text('Erreur de chargement'))),
+          data: (notes) {
+            final note = _findNote(notes, widget.noteId);
+            if (note == null) {
+              return const Scaffold(
+                body: Center(child: Text('Note introuvable')),
+              );
+            }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: TextField(
-          controller: _titleController,
-          decoration: const InputDecoration(border: InputBorder.none),
-          onChanged: (title) {
-            ref
-                .read(notesProvider.notifier)
-                .updateNote(widget.noteId, title: title);
+            _titleController ??= TextEditingController(text: note.title);
+            _contentController ??= TextEditingController(text: note.content);
+
+            return Scaffold(
+              appBar: AppBar(
+                title: TextField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(border: InputBorder.none),
+                  onChanged: (title) {
+                    unawaited(
+                      ref
+                          .read(notesProvider.notifier)
+                          .updateNote(widget.noteId, title: title),
+                    );
+                  },
+                ),
+              ),
+              body: Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextField(
+                  controller: _contentController,
+                  decoration: const InputDecoration(
+                    hintText: 'Écrire ici...',
+                    border: InputBorder.none,
+                  ),
+                  expands: true,
+                  maxLines: null,
+                  minLines: null,
+                  textAlignVertical: TextAlignVertical.top,
+                  onChanged: (content) {
+                    unawaited(
+                      ref
+                          .read(notesProvider.notifier)
+                          .updateNote(widget.noteId, content: content),
+                    );
+                  },
+                ),
+              ),
+            );
           },
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: TextField(
-          controller: _contentController,
-          decoration: const InputDecoration(
-            hintText: 'Écrire ici...',
-            border: InputBorder.none,
-          ),
-          expands: true,
-          maxLines: null,
-          minLines: null,
-          textAlignVertical: TextAlignVertical.top,
-          onChanged: (content) {
-            ref
-                .read(notesProvider.notifier)
-                .updateNote(widget.noteId, content: content);
-          },
-        ),
-      ),
-    );
+        );
   }
 }

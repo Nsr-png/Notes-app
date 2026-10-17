@@ -25,86 +25,90 @@ class NotesListScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: notes.isEmpty
-          ? const Center(child: Text('Aucune note pour le moment'))
-          : ListView.builder(
-              itemCount: notes.length,
-              itemBuilder: (context, index) {
-                final note = notes[index];
-                return Dismissible(
-                  key: ValueKey(note.id),
-                  direction: DismissDirection.startToEnd,
-                  background: Container(
-                    alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.only(left: 16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.errorContainer,
-                      borderRadius: BorderRadius.circular(12),
+      body: notes.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stackTrace) =>
+            const Center(child: Text('Erreur de chargement')),
+        data: (notes) => notes.isEmpty
+            ? const Center(child: Text('Aucune note pour le moment'))
+            : ListView.builder(
+                itemCount: notes.length,
+                itemBuilder: (context, index) {
+                  final note = notes[index];
+                  return Dismissible(
+                    key: ValueKey(note.id),
+                    direction: DismissDirection.startToEnd,
+                    background: Container(
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.only(left: 16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.delete,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.delete,
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                    ),
-                  ),
-                  onDismissed: (_) {
-                    final deletedNote = ref
-                        .read(notesProvider.notifier)
-                        .deleteNote(note.id);
-                    if (deletedNote == null) return;
+                    onDismissed: (_) async {
+                      final result = await ref
+                          .read(notesProvider.notifier)
+                          .deleteNote(note.id);
+                      if (result == null || !context.mounted) return;
 
-                    final messenger = ScaffoldMessenger.of(context);
-                    messenger.hideCurrentSnackBar();
-                    messenger.showSnackBar(
-                      SnackBar(
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
-                        persist: false,
-                        content: const Text('Note supprimée'),
-                        action: SnackBarAction(
-                          label: 'Conserver',
-                          onPressed: () {
-                            ref
-                                .read(notesProvider.notifier)
-                                .restoreNote(
-                                  deletedNote.note,
-                                  deletedNote.index,
-                                );
-                          },
-                        ),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ListTile(
-                      onTap: () => context.push('/notes/${note.id}'),
-                      title: Text(
-                        note.title,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            note.content,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                      final messenger = ScaffoldMessenger.of(context);
+                      messenger.hideCurrentSnackBar();
+                      messenger.showSnackBar(
+                        SnackBar(
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          Text('Modifiée le ${_formatDate(note.updatedAt)}'),
-                        ],
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                          persist: false,
+                          content: const Text('Note supprimée'),
+                          action: SnackBarAction(
+                            label: 'Conserver',
+                            onPressed: () {
+                              unawaited(
+                                ref
+                                    .read(notesProvider.notifier)
+                                    .restoreNote(result.note, result.index),
+                              );
+                            },
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        onTap: () => context.push('/notes/${note.id}'),
+                        title: Text(
+                          note.title,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              note.content,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text('Modifiée le ${_formatDate(note.updatedAt)}'),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
+      ),
     );
   }
 }
@@ -176,7 +180,7 @@ Future<void> _showCreateNoteDialog(BuildContext context, WidgetRef ref) async {
                             ),
                             const SizedBox(width: 8),
                             FilledButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 final title = titleController.text.trim();
                                 if (title.isEmpty) {
                                   setDialogState(() {
@@ -193,7 +197,10 @@ Future<void> _showCreateNoteDialog(BuildContext context, WidgetRef ref) async {
                                   content: '',
                                   updatedAt: now,
                                 );
-                                ref.read(notesProvider.notifier).addNote(note);
+                                await ref
+                                    .read(notesProvider.notifier)
+                                    .createNote(note);
+                                if (!dialogContext.mounted) return;
                                 Navigator.of(dialogContext).pop(note.id);
                               },
                               child: const Text('Créer'),
