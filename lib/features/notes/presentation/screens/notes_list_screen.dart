@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:notes_app/features/notes/application/notes_provider.dart';
 
 class NotesListScreen extends ConsumerWidget {
@@ -10,7 +11,16 @@ class NotesListScreen extends ConsumerWidget {
     final notes = ref.watch(notesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mes notes')),
+      appBar: AppBar(
+        title: const Text('Mes notes'),
+        actions: [
+          IconButton(
+            onPressed: () => context.push('/notes/new'),
+            tooltip: 'Ajouter une note',
+            icon: const Icon(Icons.add),
+          ),
+        ],
+      ),
       body: notes.isEmpty
           ? const Center(child: Text('Aucune note pour le moment'))
           : ListView.builder(
